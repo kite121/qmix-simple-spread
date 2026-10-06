@@ -1,0 +1,103 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont{DejaVuSans.ttf}[
+  Path=/usr/local/texlive/2024/texmf-dist/fonts/truetype/public/dejavu/,
+  BoldFont=DejaVuSans-Bold.ttf,
+  ItalicFont=DejaVuSans-Oblique.ttf,
+  BoldItalicFont=DejaVuSans-BoldOblique.ttf
+]
+\usepackage[russian]{babel}
+\usepackage{geometry}
+\geometry{left=20mm,right=20mm,top=23mm,bottom=20mm}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{needspace}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+
+\definecolor{navy}{HTML}{183153}
+\definecolor{muted}{HTML}{4A5868}
+\definecolor{deadline}{HTML}{C62828}
+\definecolor{teal}{HTML}{167D84}
+\definecolor{pale}{HTML}{EDF3F7}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\bfseries\color{muted}Проект QMIX}
+\fancyfoot[R]{\small\color{muted}\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\headheight}{22pt}
+\fancypagestyle{firstpage}{\fancyhf{}\fancyfoot[R]{\small\color{muted}\thepage}\renewcommand{\headrulewidth}{0pt}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\setlist[itemize]{leftmargin=1.45em,itemsep=1pt,topsep=3pt,parsep=0pt}
+
+\newcommand{\person}[2]{%
+  \Needspace{12\baselineskip}
+  \vspace{5pt}
+  \noindent\colorbox{pale}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+    \hspace*{7pt}\rule{0pt}{25pt}{\Large\bfseries\color{navy}#1}%
+    \hfill{\bfseries\color{deadline}Дедлайн: #2}\hspace*{7pt}}}\par
+  \vspace{1pt}
+}
+
+\begin{document}
+
+\thispagestyle{firstpage}
+{\Huge\bfseries\color{navy}Проект QMIX}\par
+\vspace{3pt}
+{\color{teal}\rule{44mm}{2.2pt}}\par
+\vspace{3pt}
+
+\person{Алина}{10 октября}
+\begin{itemize}
+  \item Подготовить 4--5 слайдов proposal presentation: какую задачу решает QMIX; что вычисляет каждый агент $Q_i$; как mixing network получает $Q_{\mathrm{tot}}$; зачем при обучении нужно полное состояние и что означает условие монотонности.
+  \item На отдельном слайде описать Simple Spread: цель агентов, их наблюдения, пять возможных действий и общую награду. Параметры среды сверить с результатом Жени.
+  \item Нарисовать схему «наблюдения $\rightarrow Q_i \rightarrow$ mixing network $\rightarrow Q_{\mathrm{tot}}$» и отметить, какие части используются при обучении, а какие — при выполнении политики.
+\end{itemize}
+\textbf{Сдать:} ссылку на редактируемую proposal presentation и готовую схему QMIX.\par
+\textbf{Кому передать:} Дане — слайды и схему для финальной презентации.\par
+
+\person{Женя}{8 октября}
+\begin{itemize}
+  \item Запустить Simple Spread в Google Colab: два агента, дискретные действия, параметр \texttt{local\_ratio=0} для общей награды.
+  \item Вывести и подписать пример наблюдения каждого агента, доступные действия, полное состояние и награду после одного шага. Проверить, что награда у обоих агентов одинаковая.
+  \item Провести один полный эпизод со случайными действиями и сохранить изображение или короткую запись эпизода.
+  \item Записать точные параметры среды и версии библиотек, с которыми запуск работает.
+\end{itemize}
+\textbf{Сдать:} ссылку на запускаемый Colab, визуальный пример и краткое описание параметров среды.\par
+\textbf{Кому передать:} Кариму — рабочие ячейки и параметры; Алине — описание среды для proposal presentation.\par
+
+\person{Карим}{10 октября}
+\begin{itemize}
+  \item Собрать основной Colab на основе среды Жени. В notebook должны запускаться обучение QMIX с нуля, сохранение модели и построение графика награды в ходе обучения.
+  \item Показать, где вычисляются индивидуальные $Q_i$, как они объединяются в $Q_{\mathrm{tot}}$, как считается TD-цель и какая ошибка минимизируется.
+  \item Сделать один полностью числовой пример TD-обновления: задать награду, $\gamma$, текущую и следующую оценку; вычислить TD-цель, ошибку и одно изменение оценки или параметра. Показать промежуточные числа.
+  \item Загрузить сохранённую модель и провести с ней эпизод без дополнительного обучения.
+\end{itemize}
+\textbf{Сдать:} ссылку на основной Colab, checkpoint обученной модели и график обучения.\par
+\textbf{Кому передать:} Аслану — checkpoint и код запуска модели; Дане — notebook и график для презентации.\par
+
+\person{Аслан}{11 октября}
+\begin{itemize}
+  \item Оценить checkpoint Карима без случайного выбора действий на фиксированном наборе, например на 50 эпизодах.
+  \item На тех же начальных состояниях запустить случайных агентов и сравнить результаты.
+  \item Посчитать среднюю награду и разброс для обоих вариантов. Если позволяет время, повторить обучение QMIX с 2--3 разными seed; фактическое число запусков указать в результатах.
+  \item Построить график сравнения, записать один эпизод обученных агентов для видео и указать, какой checkpoint использован.
+\end{itemize}
+\textbf{Сдать:} таблицу чисел, график, запись эпизода и краткий вывод на 2--3 предложения.\par
+\textbf{Кому передать:} Дане — результаты и запись для финальной презентации; Кариму — числа для notebook.\par
+
+\person{Даня}{12 октября — материалы; 13 октября — проверка}
+\begin{itemize}
+  \item Собрать финальные слайды из материалов команды: краткое введение, QMIX, Simple Spread, схема их взаимодействия, числовой пример Карима, реальные результаты Аслана, демонстрация, выводы и источники.
+  \item Подготовить сценарий на 5--7 минут и записать видео с рассказом по слайдам и показом эпизода обученных агентов.
+  \item Собрать ссылки на предварительную презентацию, основной Colab, checkpoint, финальные слайды и видео. Закончить комплект до конца 12 октября.
+  \item 13 октября проверить открытие ссылок, звук и длительность видео, а также запуск notebook в чистой сессии Colab. Исправить найденные ошибки; 14 октября отправить комплект до дедлайна.
+\end{itemize}
+\textbf{Сдать:} финальную презентацию, видеофайл на 5--7 минут и проверенный комплект ссылок.\par
+\textbf{Кому передать:} всей команде — для последней проверки; затем преподавателю через установленный способ сдачи.\par
+
+\end{document}
