@@ -33,4 +33,6 @@
 - [Статья QMIX](https://proceedings.mlr.press/v80/rashid18a/rashid18a.pdf)
 - [Описание Simple Spread](https://mpe2.farama.org/main/environments/simple_spread/)
 
-Результаты обучения будут добавляться по мере выполнения проекта.
+## Готовые результаты
+
+- **Обучение QMIX (Карим):** notebook `notebooks/qmix_simple_spread.ipynb`, модель `models/qmix_spread_n2_seed0.pt`, график `results/plots/qmix_spread_n2_seed0_training_curve.png`, отчёт с числами и версиями `results/qmix_training_report.md`. Код алгоритма — `src/qmix_spread/`, тесты — `tests/` (`pip install -r requirements.txt pytest && python -m pytest`).

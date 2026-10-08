@@ -11,3 +11,8 @@ __pycache__/
 *.out
 *.toc
 *.synctex.gz
+
+# Outputs of the notebook run with QUICK_CHECK = True
+quick_check/
+# Download archive created by the last notebook cell
+qmix_outputs.zip

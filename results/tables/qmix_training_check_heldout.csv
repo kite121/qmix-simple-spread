@@ -1,0 +1,4 @@
+seed,final_eval_mean,best_eval_mean,last3_eval_mean,random_eval_mean,C2_kept_share,heldout_qmix_mean,heldout_qmix_std,heldout_random_mean,heldout_random_std,heldout_diff_mean,heldout_diff_in_se,heldout_qmix_better_share,final_distance_qmix,final_distance_random
+0,-18.6,-18.16,-18.99,-42.33,0.965,-17.17,6.45,-41.0,13.34,23.83,22.4,1.0,0.199,0.908
+1,-30.13,-26.36,-29.9,-42.33,0.779,-29.49,9.04,-41.0,13.34,11.51,9.6,0.88,0.57,0.908
+2,-21.03,-19.99,-20.53,-42.33,0.976,-22.08,9.39,-41.0,13.34,18.92,15.6,0.94,0.375,0.908

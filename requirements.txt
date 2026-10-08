@@ -1,0 +1,8 @@
+# Environment: exact versions the results were produced with.
+mpe2==1.1.1
+pettingzoo==1.27.0
+gymnasium==1.4.0
+# Preinstalled in Google Colab; versions used locally are recorded in configs/*.json.
+torch>=2.2
+numpy>=1.26
+matplotlib>=3.8

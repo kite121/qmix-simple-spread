@@ -1,0 +1,9 @@
+[project]
+name = "qmix-spread"
+version = "0.1.0"
+description = "QMIX for the Simple Spread environment (team course project)"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

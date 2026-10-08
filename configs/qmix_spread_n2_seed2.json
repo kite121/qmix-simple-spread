@@ -1,0 +1,47 @@
+{
+  "config": {
+    "n_agents": 2,
+    "local_ratio": 0.0,
+    "max_cycles": 25,
+    "agent_hidden_dim": 64,
+    "mixing_embed_dim": 32,
+    "mixer_state_limit": 3.0,
+    "gamma": 0.95,
+    "double_q": true,
+    "lr": 0.0005,
+    "rmsprop_alpha": 0.99,
+    "rmsprop_eps": 1e-05,
+    "grad_clip_norm": 10.0,
+    "batch_size": 32,
+    "buffer_size": 5000,
+    "target_update_interval": 200,
+    "epsilon_start": 1.0,
+    "epsilon_finish": 0.05,
+    "epsilon_anneal_steps": 50000,
+    "total_env_steps": 200000,
+    "seed": 2,
+    "eval_interval_steps": 10000,
+    "eval_seeds_start": 10000,
+    "n_eval_episodes": 32
+  },
+  "environment": {
+    "package": "mpe2",
+    "env": "simple_spread_v3.parallel_env",
+    "N": 2,
+    "local_ratio": 0.0,
+    "max_cycles": 25,
+    "continuous_actions": false
+  },
+  "library_versions": {
+    "python": "3.13.16",
+    "torch": "2.14.1+cpu",
+    "numpy": "2.5.3",
+    "mpe2": "1.1.1",
+    "pettingzoo": "1.27.0",
+    "gymnasium": "1.4.0"
+  },
+  "checkpoint": {
+    "file": "qmix_spread_n2_seed2.pt",
+    "sha256": "6e92974d3049d6331123115b58657274cff6c5125390a730d2de7495d66d0608"
+  }
+}
