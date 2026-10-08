@@ -188,9 +188,9 @@ def save_run(result: TrainResult, config: QMIXConfig, random_returns: np.ndarray
         "library_versions": library_versions(),
         "checkpoint": {"file": paths["checkpoint"].name, "sha256": sha256},
     })
-    title = f"Обучение QMIX на Simple Spread (N={config.n_agents}), seed {config.seed}"
+    title = f"QMIX on Simple Spread (N={config.n_agents}), seed {config.seed}"
     plt.close(plot_training_curve(result.train_log, result.eval_log, float(random_returns.mean()), title, paths["curve"]))
-    plt.close(plot_td_loss(result.train_log, f"Квадрат TD-ошибки (loss) во время обучения, seed {config.seed}",
+    plt.close(plot_td_loss(result.train_log, f"Squared TD error (loss) during training, seed {config.seed}",
                            paths["loss"]))
     return paths
 

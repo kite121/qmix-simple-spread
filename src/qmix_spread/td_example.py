@@ -157,60 +157,73 @@ def real_transition_example(
     return result
 
 
+def _num(value: float, digits: int = 4) -> str:
+    """Short number for formulas: 0.5, -8.6, 0.444 (no trailing zeros)."""
+    text = f"{value:.{digits}f}".rstrip("0").rstrip(".")
+    return "0" if text in ("-0", "") else text
+
+
+def _par(value: float, digits: int = 4) -> str:
+    """Number for a product: negative values in parentheses, e.g. 0.5 \\cdot (-4)."""
+    text = _num(value, digits)
+    return f"({text})" if text.startswith("-") else text
+
+
+def _vector(values: list[float], bold_index: int | None = None, digits: int = 3) -> str:
+    parts = [_num(v, digits) for v in values]
+    if bold_index is not None:
+        parts[bold_index] = rf"\mathbf{{{parts[bold_index]}}}"
+    return r"\big(" + r",\ ".join(parts) + r"\big)"
+
+
 def format_hand_example(ex: dict) -> str:
-    """The hand example as a Markdown table (Russian labels, for the notebook and slides)."""
-    rows = [
-        ("Дано: награда за шаг r", "", ex["reward"]),
-        ("Дано: коэффициент дисконтирования γ", "", ex["gamma"]),
-        ("Дано: оценки агентов для выбранных действий Q₁, Q₂", "", f"{ex['q1']}, {ex['q2']}"),
-        ("Дано: веса смешивания для текущего состояния w₁, w₂, b", "", f"{ex['w1']}, {ex['w2']}, {ex['b']}"),
-        ("1. Текущая общая оценка Q_tot", "w₁·Q₁ + w₂·Q₂ + b", ex["q_tot"]),
-        ("2. Лучшая оценка агента 1 в следующем шаге", f"max{ex['next_q1_all']}", ex["next_q1_max"]),
-        ("2. Лучшая оценка агента 2 в следующем шаге", f"max{ex['next_q2_all']}", ex["next_q2_max"]),
-        ("2. Следующая общая оценка Q_tot′ (веса следующего состояния "
-         f"{ex['next_w1']}, {ex['next_w2']}, {ex['next_b']})", "w₁′·maxQ₁′ + w₂′·maxQ₂′ + b′", ex["next_q_tot"]),
-        ("3. TD-цель y", "r + γ·Q_tot′", ex["td_target"]),
-        ("3. TD-ошибка δ", "y − Q_tot", ex["td_error"]),
-        ("3. Ошибка, которую минимизируем", "δ²", ex["loss"]),
-        ("4. Градиент по Q_tot", "−2·δ", ex["dloss_dq_tot"]),
-        ("4. Сигнал агенту 1 (минус: при спуске Q₁ растёт)", "−2·δ·w₁", ex["dloss_dq1"]),
-        ("4. Сигнал агенту 2 (вдвое сильнее, т.к. w₂ = 2·w₁)", "−2·δ·w₂", ex["dloss_dq2"]),
-        ("4. Градиенты по w₁, w₂, b", "−2·δ·Q₁, −2·δ·Q₂, −2·δ",
-         f"{ex['dloss_dw1']:.4g}, {ex['dloss_dw2']:.4g}, {ex['dloss_db']:.4g}"),
-        (f"5. Градиентный спуск с learning rate {ex['lr']} (меняем только w₁, w₂, b): новые w₁, w₂, b",
-         "параметр − lr·градиент",
-         f"{ex['new_w1']:.4f}, {ex['new_w2']:.4f}, {ex['new_b']:.4f}"),
-        ("5. Новая общая оценка Q_tot", "новые w₁·Q₁ + w₂·Q₂ + b", ex["new_q_tot"]),
-        ("5. Новая TD-ошибка", "y − новая Q_tot", ex["new_td_error"]),
+    """The hand example as a chain of formulas with every number filled in (Markdown + LaTeX)."""
+    best1 = int(np.argmax(ex["next_q1_all"]))
+    best2 = int(np.argmax(ex["next_q2_all"]))
+    lines = [
+        r"\textbf{given:}\quad & r = " + _num(ex["reward"]) + r",\ \gamma = " + _num(ex["gamma"])
+        + r",\ (Q_1, Q_2) = (" + _num(ex["q1"]) + ", " + _num(ex["q2"]) + r"),\ (w_1, w_2, b) = ("
+        + ", ".join(_num(ex[k]) for k in ("w1", "w2", "b")) + r"),\ \eta = " + _num(ex["lr"]),
+        r"Q_{tot} &= w_1 Q_1 + w_2 Q_2 + b = " + _num(ex["w1"]) + r" \cdot " + _par(ex["q1"]) + " + "
+        + _num(ex["w2"]) + r" \cdot " + _par(ex["q2"]) + " + " + _par(ex["b"]) + " = " + _num(ex["q_tot"]),
+        r"Q_1(\tau_1', \cdot) &= " + _vector(ex["next_q1_all"], best1) + r",\quad Q_2(\tau_2', \cdot) = "
+        + _vector(ex["next_q2_all"], best2) + r"\quad \text{(best in bold)}",
+        r"Q_{tot}' &= w_1' \max Q_1' + w_2' \max Q_2' + b' = " + _num(ex["next_w1"]) + r" \cdot "
+        + _par(ex["next_q1_max"]) + " + " + _num(ex["next_w2"]) + r" \cdot " + _par(ex["next_q2_max"]) + " + "
+        + _par(ex["next_b"]) + " = " + _num(ex["next_q_tot"]),
+        r"y &= r + \gamma\, Q_{tot}' = " + _num(ex["reward"]) + " + " + _num(ex["gamma"]) + r" \cdot "
+        + _par(ex["next_q_tot"]) + " = " + _num(ex["td_target"]),
+        r"\delta &= y - Q_{tot} = " + _num(ex["td_target"]) + " - " + _par(ex["q_tot"]) + " = "
+        + _num(ex["td_error"]) + r", \qquad \mathcal{L} = \delta^2 = " + _num(ex["loss"]),
+        r"\frac{\partial \mathcal{L}}{\partial Q_{tot}} &= -2\delta = " + _num(ex["dloss_dq_tot"])
+        + r", \qquad \frac{\partial \mathcal{L}}{\partial Q_1} = -2\delta\, w_1 = " + _num(ex["dloss_dq1"])
+        + r", \qquad \frac{\partial \mathcal{L}}{\partial Q_2} = -2\delta\, w_2 = " + _num(ex["dloss_dq2"]),
+        r"\frac{\partial \mathcal{L}}{\partial (w_1, w_2, b)} &= -2\delta\, (Q_1, Q_2, 1) = ("
+        + ", ".join(_num(ex[k]) for k in ("dloss_dw1", "dloss_dw2", "dloss_db")) + ")",
+        r"(w_1, w_2, b) &\leftarrow (w_1, w_2, b) - \eta \nabla \mathcal{L} = ("
+        + ", ".join(_num(ex[k]) for k in ("new_w1", "new_w2", "new_b")) + ")",
+        r"Q_{tot}^{\text{new}} &= " + _num(ex["new_q_tot"]) + r", \qquad \delta^{\text{new}} = y - Q_{tot}^{\text{new}} = "
+        + _num(ex["new_td_error"]) + r" \quad (\text{was } " + _num(ex["td_error"]) + ")",
     ]
-    lines = ["| Этап | Формула | Значение |", "| --- | --- | --- |"]
-    for name, formula, value in rows:
-        shown = f"{value:.4f}".rstrip("0").rstrip(".") if isinstance(value, float) else value
-        lines.append(f"| {name} | {formula} | {shown} |")
-    return "\n".join(lines)
+    return "$$\n\\begin{aligned}\n" + " \\\\\n".join(lines) + "\n\\end{aligned}\n$$"
 
 
 def format_real_example(r: dict, action_names: list[str]) -> str:
-    """The real-network example as a Markdown table."""
+    """The real-network example as a chain of formulas (Markdown + LaTeX)."""
     a1, a2 = r["actions"]
-    q1 = np.round(r["q1_all"], 3).tolist()
-    q2 = np.round(r["q2_all"], 3).tolist()
-    rows = [
-        ("Q₁ для 5 действий (сеть агента 1)", str(q1)),
-        ("Q₂ для 5 действий (сеть агента 2)", str(q2)),
-        ("Выбранные действия", f"агент 1: {action_names[a1]}, агент 2: {action_names[a2]}"),
-        ("Q₁, Q₂ выбранных действий", f"{r['chosen_q'][0]:.3f}, {r['chosen_q'][1]:.3f}"),
-        ("Q_tot (смешивающая сеть)", f"{r['q_tot']:.4f}"),
-        ("Награда r", f"{r['reward']:.4f}"),
-        ("Q лучших действий агентов в следующем шаге (выбирает обучаемая сеть, оценивает целевая)",
-         f"{r['next_max_q'][0]:.3f}, {r['next_max_q'][1]:.3f}"),
-        ("Q_tot′ следующего шага (целевая смешивающая сеть)", f"{r['next_q_tot']:.4f}"),
-        ("TD-цель y = r + γ·Q_tot′", f"{r['reward']:.4f} + {r['gamma']}·({r['next_q_tot']:.4f}) = {r['td_target']:.4f}"),
-        ("TD-ошибка δ = y − Q_tot", f"{r['td_error']:.4f}"),
-        ("Ошибка δ²", f"{r['loss']:.6f}"),
-        (f"Q_tot после одного шага градиентного спуска (learning rate {r['lr']})", f"{r['new_q_tot']:.4f}"),
-        ("TD-ошибка после шага", f"{r['new_td_error']:.4f}"),
+    lines = [
+        r"Q_1(\tau_1, \cdot) &= " + _vector(r["q1_all"], a1) + r",\qquad Q_2(\tau_2, \cdot) = "
+        + _vector(r["q2_all"], a2) + r"\quad \text{(taken action in bold)}",
+        r"Q_{tot}(\boldsymbol{\tau}, \mathbf{a}, s) &= g\big(" + _num(r["chosen_q"][0], 3) + ",\\ "
+        + _num(r["chosen_q"][1], 3) + r";\ s\big) = " + _num(r["q_tot"]),
+        r"Q^{-}_{tot}(\boldsymbol{\tau}', \hat{\mathbf{a}}', s') &= g^{-}\big(" + _num(r["next_max_q"][0], 3) + ",\\ "
+        + _num(r["next_max_q"][1], 3) + r";\ s'\big) = " + _num(r["next_q_tot"]),
+        r"y &= r + \gamma\, Q^{-}_{tot} = " + _num(r["reward"]) + " + " + _num(r["gamma"]) + r" \cdot "
+        + _par(r["next_q_tot"]) + " = " + _num(r["td_target"]),
+        r"\delta &= y - Q_{tot} = " + _num(r["td_error"]) + r", \qquad \mathcal{L} = \delta^2 = " + _num(r["loss"], 6),
+        r"\text{one gradient step } (\eta = " + _num(r["lr"], 6) + r"):\quad Q_{tot} &\to " + _num(r["new_q_tot"])
+        + r", \qquad \delta \to " + _num(r["new_td_error"]),
     ]
-    lines = [f"| Шаг {r['step'] + 1} эпизода (индекс {r['step']} в коде) | Значение |", "| --- | --- |"]
-    lines += [f"| {name} | {value} |" for name, value in rows]
-    return "\n".join(lines)
+    header = (f"Step {r['step'] + 1} of the episode (index {r['step']} in code): agent 1 `{action_names[a1]}`, "
+              f"agent 2 `{action_names[a2]}`")
+    return header + "\n\n$$\n\\begin{aligned}\n" + " \\\\\n".join(lines) + "\n\\end{aligned}\n$$"

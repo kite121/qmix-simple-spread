@@ -9,7 +9,14 @@ from qmix_spread.config import QMIXConfig
 from qmix_spread.env import SpreadEnv
 from qmix_spread.learner import QMIXLearner, unroll_agent_network
 from qmix_spread.rollout import QMIXPolicy, RandomPolicy, evaluate, run_episode
-from qmix_spread.td_example import check_with_autograd, episodes_to_batch, hand_td_example, real_transition_example
+from qmix_spread.td_example import (
+    check_with_autograd,
+    episodes_to_batch,
+    format_hand_example,
+    format_real_example,
+    hand_td_example,
+    real_transition_example,
+)
 from qmix_spread.train import train
 
 
@@ -177,6 +184,12 @@ def test_hand_example_numbers_and_autograd():
     assert abs(ex["new_td_error"]) < abs(ex["td_error"])
     assert check_with_autograd(ex)["max_abs_difference"] < 1e-9
 
+    # The formula chain shown in the notebook carries the same numbers.
+    text = format_hand_example(ex)
+    for shown in ["= -10", "= -8.6", "= 1.4", "= 1.96", "(0.444, 0.916, -1.986)", "= -9.258", "= 0.658"]:
+        assert shown in text
+    assert text.count("$$") == 2 and text.count(r"\begin{aligned}") == 1
+
 
 def test_real_example_moves_q_tot_towards_the_target():
     config, env, agent_net, mixer, _, _, episodes = make_setup()
@@ -186,6 +199,8 @@ def test_real_example_moves_q_tot_towards_the_target():
     assert abs(r["new_td_error"]) < abs(r["td_error"])
     assert np.sign(r["new_td_error"]) == np.sign(r["td_error"])
     assert all(torch.equal(a, b) for a, b in zip(before, agent_net.parameters()))  # original untouched
+    text = format_real_example(r, ["a", "b", "c", "d", "e"])
+    assert f"{r['td_target']:.4f}".rstrip("0").rstrip(".") in text and text.count("$$") == 2
 
 
 TINY = QMIXConfig(total_env_steps=1_000, batch_size=4, buffer_size=50, target_update_interval=10,
