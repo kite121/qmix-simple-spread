@@ -87,8 +87,9 @@ class QMIXLearner:
                 target_max_q = target_q_all[:, 1:].max(dim=3).values  # [B, T, n]
             target_q_tot = self.target_mixer(target_max_q, state[:, 1:])  # [B, T]
             # (1 - terminated) drops the future only if the task itself ended. The 25-step time
-            # limit is not such an end: the agents cannot see the step counter, so we still
-            # bootstrap from the next state (Pardo et al., 2018, "Time Limits in RL").
+            # limit is not such an end: the task does not depend on time and the state has no
+            # step counter, so we still bootstrap from the next state, as pymarl does
+            # (Pardo et al., 2018, "Time Limits in Reinforcement Learning").
             td_target = reward + self.gamma * (1.0 - terminated) * target_q_tot  # [B, T]
 
         # 4) TD error and the loss that is minimised: mean of squared TD errors.

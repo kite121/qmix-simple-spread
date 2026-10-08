@@ -11,4 +11,5 @@ Modules, in the order data flows through them:
     checkpoint  - saving / loading a trained model
     td_example  - the step-by-step numeric TD example
     plotting    - figures
+    checks      - checks of trained models for the report (held-out start positions, long episodes)
 """

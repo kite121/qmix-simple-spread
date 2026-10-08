@@ -97,12 +97,14 @@ class QMixer(nn.Module):
     The state is used only here, i.e. only during training.
     """
 
-    def __init__(self, n_agents: int, state_dim: int, embed_dim: int, state_limit: float):
+    def __init__(self, n_agents: int, state_dim: int, embed_dim: int, state_limit: float | None):
         super().__init__()
         self.n_agents = n_agents
         self.state_dim = state_dim
         self.embed_dim = embed_dim
-        self.state_limit = state_limit
+        # Stored as a buffer, so it is saved in the state_dict together with the weights.
+        # None switches the limit off (the mixer is then exactly the one from the paper).
+        self.register_buffer("state_limit", None if state_limit is None else torch.tensor(float(state_limit)))
 
         # Hypernetworks for the weights: one linear layer each, as in the paper.
         self.hyper_w1 = nn.Linear(state_dim, n_agents * embed_dim)
@@ -123,12 +125,14 @@ class QMixer(nn.Module):
         qs = agent_qs.reshape(-1, 1, self.n_agents)  # [N, 1, n]  N = all leading dims flattened
         s = states.reshape(-1, self.state_dim)  # [N, S]
 
-        # Soft limit of the state values: limit * tanh(s / limit). With limit = 3:
-        #   0.5 -> 0.50,  1.0 -> 0.96,  2.0 -> 1.75,  5.0 -> 2.79,  50.0 -> 3.00
-        # Simple Spread has no walls, so agents can wander far from the area where they start.
-        # The hypernetworks are linear in s; without a limit they produce huge mixing weights for
-        # such far states, Q_tot runs away, and the agents learn to run away too (see the report).
-        s = self.state_limit * torch.tanh(s / self.state_limit)
+        # Not in the paper: soft limit of the state values, limit * tanh(s / limit). With limit = 3:
+        #   0.5 -> 0.50,  1.0 -> 0.96,  2.0 -> 1.75,  4.5 -> 2.71,  50.0 -> 3.00
+        # Most state values lie within +-1.5 and are almost unchanged. Values up to about 4.5
+        # (agents far from the start area at the end of an episode) are rare in the data; the
+        # hypernetworks are linear in s and extrapolated badly there, so Q_tot for such states
+        # grew far too large in our pilot runs (see the report). The limit compresses these tails.
+        if self.state_limit is not None:
+            s = self.state_limit * torch.tanh(s / self.state_limit)
 
         # First layer weights, generated from the state and made non-negative.
         w1 = torch.abs(self.hyper_w1(s)).view(-1, self.n_agents, self.embed_dim)  # [N, n, E]

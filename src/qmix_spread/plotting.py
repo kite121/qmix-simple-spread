@@ -70,7 +70,7 @@ def plot_training_curve(
     eval_steps = np.array([row["env_steps"] for row in eval_log]) / 1000
     eval_mean = np.array([row["mean_return"] for row in eval_log])
     eval_std = np.array([row["std_return"] for row in eval_log])
-    n_eval = eval_log[0]["n_episodes"]
+    n_eval = int(eval_log[0]["n_episodes"])  # int(): logs read back from CSV hold floats
     ax.fill_between(eval_steps, eval_mean - eval_std, eval_mean + eval_std, color=BLUE, alpha=0.1, linewidth=0)
     ax.plot(
         eval_steps,
@@ -121,7 +121,7 @@ def plot_training_curve(
 
 
 def plot_td_loss(train_log: list[dict], title: str, path: str | Path | None = None, smoothing_episodes: int = 200):
-    """TD loss (mean squared TD error) during training, log scale."""
+    """Loss (mean squared TD error of a batch) during training, log scale."""
     rows = [row for row in train_log if np.isfinite(row["loss"])]
     steps = np.array([row["env_steps"] for row in rows]) / 1000
     loss = np.array([row["loss"] for row in rows])
@@ -134,7 +134,7 @@ def plot_td_loss(train_log: list[dict], title: str, path: str | Path | None = No
     ax.plot(steps, moving_average(loss, smoothing_episodes), color=BLUE, linewidth=2)
     ax.set_yscale("log")
     ax.set_xlabel("шаги среды, тыс.")
-    ax.set_ylabel(f"TD-ошибка в квадрате\n(среднее по {smoothing_episodes} шагам обучения)")
+    ax.set_ylabel(f"loss = средний квадрат TD-ошибки\n(скользящее среднее по {smoothing_episodes} шагам)")
     ax.set_title(title, fontsize=13, loc="left")
     fig.tight_layout()
     if path is not None:
@@ -148,6 +148,12 @@ def plot_episode_trajectories(episodes: list[tuple[Episode, str]], path: str | P
     fig, axes = plt.subplots(1, len(episodes), figsize=(5.5 * len(episodes), 5.8), dpi=150, squeeze=False)
     fig.patch.set_facecolor(SURFACE)
     colors = [BLUE, ORANGE]
+
+    # The same square area in every panel, so the paths can be compared by eye.
+    points = np.concatenate([np.concatenate([e.agent_positions.reshape(-1, 2), e.landmark_positions])
+                             for e, _ in episodes])
+    center = (points.max(axis=0) + points.min(axis=0)) / 2
+    half_size = (points.max(axis=0) - points.min(axis=0)).max() / 2 * 1.1 + 0.05
     for ax, (episode, title) in zip(axes[0], episodes):
         if episode.agent_positions is None:
             raise ValueError("run the episode with record_positions=True")
@@ -164,7 +170,9 @@ def plot_episode_trajectories(episodes: list[tuple[Episode, str]], path: str | P
         landmarks = episode.landmark_positions
         ax.scatter(landmarks[:, 0], landmarks[:, 1], marker="X", s=140, color=TEXT, edgecolor=SURFACE,
                    linewidth=1.5, label="ориентиры (цели)", zorder=5)
-        ax.set_aspect("equal", adjustable="datalim")
+        ax.set_xlim(center[0] - half_size, center[0] + half_size)
+        ax.set_ylim(center[1] - half_size, center[1] + half_size)
+        ax.set_aspect("equal", adjustable="box")
         ax.set_xlabel("x")
         ax.set_ylabel("y")
         ax.set_title(f"{title}\nнаграда за эпизод {episode.total_reward:.1f}", fontsize=11, loc="left")

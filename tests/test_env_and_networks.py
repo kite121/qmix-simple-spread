@@ -76,10 +76,40 @@ def test_individual_best_actions_give_the_best_joint_action():
         assert best_joint == best_individual
 
 
-def test_policy_uses_only_local_observations():
+def test_policy_of_one_agent_ignores_the_other_agents_observation():
     torch.manual_seed(0)
     net = AgentNetwork(obs_dim=12, n_agents=2, n_actions=5, hidden_dim=64)
+    obs = np.random.default_rng(0).normal(size=(2, 12)).astype(np.float32)
     policy = QMIXPolicy(net)
-    actions = policy.act(np.zeros((2, 12), dtype=np.float32))  # no state, no mixer
+    actions = policy.act(obs)  # the policy gets observations only: no state, no mixer
     assert actions.shape == (2,) and actions.dtype.kind == "i"
-    assert policy.last_q.shape == (2, 5)
+    q_before = policy.last_q.clone()
+
+    changed = obs.copy()
+    changed[1] += 5.0  # change only agent 2's observation
+    policy.reset()
+    policy.act(changed)
+    assert torch.equal(policy.last_q[0], q_before[0])  # agent 1's Q is exactly the same
+    assert not torch.equal(policy.last_q[1], q_before[1])
+
+
+def test_agent_id_lets_the_shared_network_tell_agents_apart():
+    torch.manual_seed(0)
+    net = AgentNetwork(obs_dim=12, n_agents=2, n_actions=5, hidden_dim=64)
+    same_obs = torch.randn(1, 1, 12).expand(1, 2, 12)  # both agents see exactly the same
+    q, _ = net(same_obs, torch.zeros(1, 2, 5), net.init_hidden(1))
+    assert not torch.allclose(q[0, 0], q[0, 1])
+
+
+def test_state_limit_bounds_q_tot_for_far_states_and_can_be_switched_off():
+    torch.manual_seed(0)
+    limited = QMixer(n_agents=2, state_dim=24, embed_dim=32, state_limit=3.0)
+    unlimited = QMixer(n_agents=2, state_dim=24, embed_dim=32, state_limit=None)
+    unlimited.load_state_dict(limited.state_dict(), strict=False)  # same weights, no limit
+    qs, s = torch.randn(10, 2), torch.randn(10, 24)
+    # Far states: with the limit Q_tot stops changing, without it Q_tot keeps growing.
+    assert torch.allclose(limited(qs, 1e6 * s), limited(qs, 1e7 * s), atol=1e-4)
+    assert (unlimited(qs, 1000 * s) - unlimited(qs, 100 * s)).abs().max() > 1.0
+    # The limit is saved with the weights.
+    assert limited.state_dict()["state_limit"].item() == 3.0
+    assert "state_limit" not in unlimited.state_dict()

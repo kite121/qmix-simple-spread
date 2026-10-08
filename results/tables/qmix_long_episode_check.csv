@@ -1,0 +1,6 @@
+seed,mean_distance_step25,mean_distance_step50,mean_distance_step100,mean_distance_step150,share_within_0.5_at_step150,max_distance_at_step150,worst_start_position,q_tot_step0_predicted,discounted_return_step0_real
+0,0.199,0.21,0.234,0.335,0.98,14.31,30081,-12.84,-13.92
+1,0.57,0.617,2.212,4.559,0.19,20.27,30072,-14.71,-25.41
+2,0.375,0.394,0.468,1.022,0.7,9.58,30064,-13.3,-18.23
+4,0.553,0.598,0.614,0.62,0.4,2.45,30098,-14.42,-23.3
+5,0.228,0.276,0.414,0.485,0.88,8.59,30040,-13.35,-15.05

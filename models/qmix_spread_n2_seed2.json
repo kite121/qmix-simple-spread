@@ -1,7 +1,7 @@
 {
   "checkpoint_file": "qmix_spread_n2_seed2.pt",
-  "sha256": "6e92974d3049d6331123115b58657274cff6c5125390a730d2de7495d66d0608",
-  "size_bytes": 130341,
+  "sha256": "3c1ee9b657a305a68c8c322bc245e50ae04eaee9293fd72817786de2b41081a1",
+  "size_bytes": 130607,
   "n_parameters": {
     "agent_net": 26565,
     "mixer": 4033
@@ -38,7 +38,7 @@
     "n_eval_episodes": 32
   },
   "metadata": {
-    "created_utc": "2026-10-08 10:26:50",
+    "created_utc": "2026-10-08 11:08:44",
     "library_versions": {
       "python": "3.13.16",
       "torch": "2.14.1+cpu",
@@ -49,7 +49,7 @@
     },
     "env_steps": 200000,
     "episodes": 8000,
-    "wall_time_sec": 327.0,
+    "wall_time_sec": 405.5,
     "torch_threads": 1,
     "final_eval_mean_return": -21.02563696580495,
     "final_eval_std_return": 8.303768679131325,

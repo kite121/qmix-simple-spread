@@ -58,7 +58,7 @@ class QMIXPolicy:
     def reset(self) -> None:
         self.hidden = self.agent_net.init_hidden(1)  # [1, n, H]
         self.last_actions_onehot = torch.zeros(1, self.n_agents, self.n_actions)  # no previous action yet
-        self.last_q = None  # Q_i of the latest step, kept for display
+        self.last_q = None  # Q_i of the latest step [n, A], for inspection (the tests compare it with training)
 
     @torch.no_grad()
     def act(self, obs: np.ndarray, epsilon: float = 0.0, rng: np.random.Generator | None = None) -> np.ndarray:

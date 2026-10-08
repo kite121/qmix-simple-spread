@@ -13,13 +13,14 @@ class QMIXConfig:
     # --- Networks (sizes from the QMIX paper, Rashid et al. 2018) ---
     agent_hidden_dim: int = 64  # width of the GRU inside the agent network
     mixing_embed_dim: int = 32  # width of the hidden layer of the mixing network
-    # Not in the paper: state -> limit * tanh(state / limit) before the hypernetworks.
-    # Without it Q_tot ran away to large positive values in our pilot runs (see the report).
-    mixer_state_limit: float = 3.0
+    # Not in the paper: state -> limit * tanh(state / limit) before the hypernetworks, which
+    # compresses rare large state values. None switches it off. See QMixer and the report.
+    mixer_state_limit: float | None = 3.0
 
     # --- Learning ---
-    # The paper uses 0.99. Episodes here are only 25 steps long, and with 0.99 Q_tot slowly
-    # ran away to positive values in pilot runs even with the state limit; 0.95 was stable.
+    # The paper uses 0.99. With 0.99, mean Q_tot drifted to positive values in our pilot runs
+    # (impossible: every reward is negative), even with the state limit; with 0.95 it stayed
+    # stable. 1 / (1 - 0.95) = 20 steps of horizon is enough for 25-step episodes.
     gamma: float = 0.95
     # Double Q-learning, as in the authors' reference code (pymarl): the next action is chosen
     # by the online network and rated by the target network, which reduces overestimation.

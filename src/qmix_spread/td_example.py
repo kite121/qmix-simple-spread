@@ -4,7 +4,8 @@ Part 1 (hand_td_example): round numbers, computed with plain arithmetic, for the
     To keep it countable by hand, the mixer is one layer: Q_tot = w1*Q1 + w2*Q2 + b with w1, w2 >= 0.
     The real QMixer has a hidden layer and gets w and b from the state through hypernetworks,
     but the TD step is exactly the same.
-Part 2 (check_with_autograd): the same numbers recomputed by PyTorch autograd, to prove part 1 is right.
+Part 2 (check_with_autograd): the same numbers recomputed by PyTorch autograd. The formulas are the same,
+    so this checks the arithmetic of part 1 (gradients by hand vs. by autograd), not the formulas themselves.
 Part 3 (real_transition_example): the same quantities taken from the trained networks for one real step.
 """
 
@@ -61,6 +62,8 @@ def hand_td_example() -> dict:
     ex["dloss_db"] = ex["dloss_dq_tot"]  # -2.8
 
     # --- 5. One gradient descent step: parameter <- parameter - lr * gradient ---
+    # Only the mixer parameters change here, to keep it countable. In the real network the
+    # signals of step 4 (dloss_dq1, dloss_dq2) also flow on into the agent networks.
     ex["new_w1"] = ex["w1"] - ex["lr"] * ex["dloss_dw1"]  # 0.444
     ex["new_w2"] = ex["w2"] - ex["lr"] * ex["dloss_dw2"]  # 0.916
     ex["new_b"] = ex["b"] - ex["lr"] * ex["dloss_db"]  # -1.986
@@ -170,16 +173,17 @@ def format_hand_example(ex: dict) -> str:
         ("3. TD-ошибка δ", "y − Q_tot", ex["td_error"]),
         ("3. Ошибка, которую минимизируем", "δ²", ex["loss"]),
         ("4. Градиент по Q_tot", "−2·δ", ex["dloss_dq_tot"]),
-        ("4. Сигнал агенту 1", "−2·δ·w₁", ex["dloss_dq1"]),
-        ("4. Сигнал агенту 2", "−2·δ·w₂", ex["dloss_dq2"]),
+        ("4. Сигнал агенту 1 (минус: при спуске Q₁ растёт)", "−2·δ·w₁", ex["dloss_dq1"]),
+        ("4. Сигнал агенту 2 (вдвое сильнее, т.к. w₂ = 2·w₁)", "−2·δ·w₂", ex["dloss_dq2"]),
         ("4. Градиенты по w₁, w₂, b", "−2·δ·Q₁, −2·δ·Q₂, −2·δ",
          f"{ex['dloss_dw1']:.4g}, {ex['dloss_dw2']:.4g}, {ex['dloss_db']:.4g}"),
-        (f"5. Шаг с размером {ex['lr']}: новые w₁, w₂, b", "параметр − шаг·градиент",
+        (f"5. Градиентный спуск с learning rate {ex['lr']} (меняем только w₁, w₂, b): новые w₁, w₂, b",
+         "параметр − lr·градиент",
          f"{ex['new_w1']:.4f}, {ex['new_w2']:.4f}, {ex['new_b']:.4f}"),
         ("5. Новая общая оценка Q_tot", "новые w₁·Q₁ + w₂·Q₂ + b", ex["new_q_tot"]),
         ("5. Новая TD-ошибка", "y − новая Q_tot", ex["new_td_error"]),
     ]
-    lines = ["| Шаг | Формула | Значение |", "| --- | --- | --- |"]
+    lines = ["| Этап | Формула | Значение |", "| --- | --- | --- |"]
     for name, formula, value in rows:
         shown = f"{value:.4f}".rstrip("0").rstrip(".") if isinstance(value, float) else value
         lines.append(f"| {name} | {formula} | {shown} |")
@@ -204,9 +208,9 @@ def format_real_example(r: dict, action_names: list[str]) -> str:
         ("TD-цель y = r + γ·Q_tot′", f"{r['reward']:.4f} + {r['gamma']}·({r['next_q_tot']:.4f}) = {r['td_target']:.4f}"),
         ("TD-ошибка δ = y − Q_tot", f"{r['td_error']:.4f}"),
         ("Ошибка δ²", f"{r['loss']:.6f}"),
-        (f"Q_tot после одного шага градиентного спуска (шаг {r['lr']})", f"{r['new_q_tot']:.4f}"),
+        (f"Q_tot после одного шага градиентного спуска (learning rate {r['lr']})", f"{r['new_q_tot']:.4f}"),
         ("TD-ошибка после шага", f"{r['new_td_error']:.4f}"),
     ]
-    lines = [f"| Шаг эпизода {r['step']} | Значение |", "| --- | --- |"]
+    lines = [f"| Шаг {r['step'] + 1} эпизода (индекс {r['step']} в коде) | Значение |", "| --- | --- |"]
     lines += [f"| {name} | {value} |" for name, value in rows]
     return "\n".join(lines)

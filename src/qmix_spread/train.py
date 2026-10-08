@@ -17,7 +17,7 @@ import torch
 from .buffer import EpisodeBuffer
 from .checkpoint import build_networks, library_versions, save_checkpoint, save_json
 from .config import QMIXConfig
-from .env import SpreadEnv
+from .env import FIXED_ENV_ARGS, SpreadEnv
 from .learner import QMIXLearner
 from .networks import AgentNetwork, QMixer
 from .plotting import plot_td_loss, plot_training_curve
@@ -183,13 +183,15 @@ def save_run(result: TrainResult, config: QMIXConfig, random_returns: np.ndarray
             "local_ratio": config.local_ratio,
             "max_cycles": config.max_cycles,
             "continuous_actions": False,
+            **FIXED_ENV_ARGS,
         },
         "library_versions": library_versions(),
         "checkpoint": {"file": paths["checkpoint"].name, "sha256": sha256},
     })
     title = f"Обучение QMIX на Simple Spread (N={config.n_agents}), seed {config.seed}"
     plt.close(plot_training_curve(result.train_log, result.eval_log, float(random_returns.mean()), title, paths["curve"]))
-    plt.close(plot_td_loss(result.train_log, f"TD-ошибка во время обучения, seed {config.seed}", paths["loss"]))
+    plt.close(plot_td_loss(result.train_log, f"Квадрат TD-ошибки (loss) во время обучения, seed {config.seed}",
+                           paths["loss"]))
     return paths
 
 
@@ -208,7 +210,9 @@ def main() -> None:
     for item in args.set:
         key, value = item.split("=", 1)
         default = getattr(QMIXConfig, key)  # fails loudly on a typo in the field name
-        if isinstance(default, bool):
+        if value.lower() == "none":
+            overrides[key] = None
+        elif isinstance(default, bool):
             overrides[key] = value.lower() in ("1", "true", "yes")  # bool("0") would be True
         else:
             overrides[key] = type(default)(value)

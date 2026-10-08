@@ -30,7 +30,12 @@
     "N": 2,
     "local_ratio": 0.0,
     "max_cycles": 25,
-    "continuous_actions": false
+    "continuous_actions": false,
+    "terminate_on_success": false,
+    "curriculum": false,
+    "num_agent_neighbors": null,
+    "num_landmark_neighbors": null,
+    "dynamic_rescaling": true
   },
   "library_versions": {
     "python": "3.13.16",
@@ -42,6 +47,6 @@
   },
   "checkpoint": {
     "file": "qmix_spread_n2_seed0.pt",
-    "sha256": "d7f4e2aac9eff79b9067850c4255c144c6b8b531450a22bb157ee76cc9240226"
+    "sha256": "a7d3d7f91de76a98c5405d9cfbab73ec4961556ec5cc2dfb6437e568e8cb86b4"
   }
 }

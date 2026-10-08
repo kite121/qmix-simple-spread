@@ -19,6 +19,17 @@ from .config import QMIXConfig
 
 ACTION_NAMES = ["no_action", "move_left", "move_right", "move_down", "move_up"]
 
+# The remaining mpe2 1.1.1 arguments, written out so a change of library defaults cannot
+# silently change the task. These are the defaults: no early end, no curriculum, full
+# observability; dynamic_rescaling only changes the size of drawn circles.
+FIXED_ENV_ARGS = {
+    "terminate_on_success": False,
+    "curriculum": False,
+    "num_agent_neighbors": None,
+    "num_landmark_neighbors": None,
+    "dynamic_rescaling": True,
+}
+
 
 class SpreadEnv:
     def __init__(self, config: QMIXConfig, render_mode: str | None = None):
@@ -28,6 +39,7 @@ class SpreadEnv:
             max_cycles=config.max_cycles,
             continuous_actions=False,  # QMIX picks one of 5 discrete actions
             render_mode=render_mode,
+            **FIXED_ENV_ARGS,
         )
         self.agent_names = list(self._env.possible_agents)
         self.n_agents = len(self.agent_names)
