@@ -1,7 +1,9 @@
 # Environment: exact versions the results were produced with.
 mpe2==1.1.1
 pettingzoo==1.27.0
-gymnasium==1.4.0
+# Same as Google Colab and the team's environment notebook. The saved runs used 1.4.0;
+# both versions give bit-identical environment numbers and evaluation results.
+gymnasium==1.3.0
 # Preinstalled in Google Colab; versions used locally are recorded in configs/*.json.
 torch>=2.2
 numpy>=1.26

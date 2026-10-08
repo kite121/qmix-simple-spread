@@ -27,6 +27,17 @@ def test_environment_matches_the_assignment():
     assert np.all(episode.rewards < 0)  # reward = minus the sum of distances
 
 
+def test_environment_matches_teammate_notebook():
+    # Observations printed after env.reset(seed=42) in the team's environment notebook (Colab,
+    # mpe2 1.1.1, same arguments). Equal numbers mean both notebooks use the same environment.
+    expected = np.array([
+        [0.0, 0.0, 0.548, -0.122, -1.360, 1.073, -0.026, 0.694, 0.169, 0.517, 0.0, 0.0],
+        [0.0, 0.0, 0.717, 0.395, -1.529, 0.557, -0.195, 0.177, -0.169, -0.517, 0.0, 0.0],
+    ])
+    obs, _ = SpreadEnv(QMIXConfig()).reset(seed=42)
+    assert np.allclose(obs, expected, atol=5e-4)  # printed with 3 decimals
+
+
 def test_seeded_reset_gives_the_same_start():
     env = SpreadEnv(QMIXConfig())
     obs_a, _ = env.reset(seed=123)

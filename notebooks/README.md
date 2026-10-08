@@ -1,6 +1,6 @@
 # Colab notebooks
 
-- Женя: проверка среды Simple Spread и случайный эпизод.
+- Женя: проверка среды Simple Spread и случайный эпизод — [Colab](https://colab.research.google.com/drive/1Nn4xIS1bwTzZxao6cly8Br9sOJBBXf_j). Параметры и версии совпадают с notebook Карима.
 - Карим: обучение QMIX, числовой пример TD-обновления, сохранение модели — `qmix_simple_spread.ipynb`.
 - Аслан: оценка сохранённой модели и сравнение со случайными агентами.
 
