@@ -181,13 +181,14 @@ def format_hand_example(ex: dict) -> str:
     best1 = int(np.argmax(ex["next_q1_all"]))
     best2 = int(np.argmax(ex["next_q2_all"]))
     lines = [
-        r"\textbf{given:}\quad & r = " + _num(ex["reward"]) + r",\ \gamma = " + _num(ex["gamma"])
-        + r",\ (Q_1, Q_2) = (" + _num(ex["q1"]) + ", " + _num(ex["q2"]) + r"),\ (w_1, w_2, b) = ("
-        + ", ".join(_num(ex[k]) for k in ("w1", "w2", "b")) + r"),\ \eta = " + _num(ex["lr"]),
+        r"\text{given:}\quad & r = " + _num(ex["reward"]) + r",\ \gamma = " + _num(ex["gamma"])
+        + r",\ \eta = " + _num(ex["lr"]),
+        r"& (Q_1, Q_2) = (" + _num(ex["q1"]) + ", " + _num(ex["q2"]) + r"),\ (w_1, w_2, b) = ("
+        + ", ".join(_num(ex[k]) for k in ("w1", "w2", "b")) + ")",
         r"Q_{tot} &= w_1 Q_1 + w_2 Q_2 + b = " + _num(ex["w1"]) + r" \cdot " + _par(ex["q1"]) + " + "
         + _num(ex["w2"]) + r" \cdot " + _par(ex["q2"]) + " + " + _par(ex["b"]) + " = " + _num(ex["q_tot"]),
-        r"Q_1(\tau_1', \cdot) &= " + _vector(ex["next_q1_all"], best1) + r",\quad Q_2(\tau_2', \cdot) = "
-        + _vector(ex["next_q2_all"], best2) + r"\quad \text{(best in bold)}",
+        r"Q_1(\tau_1', \cdot) &= " + _vector(ex["next_q1_all"], best1) + r"\quad \text{(max in bold)}",
+        r"Q_2(\tau_2', \cdot) &= " + _vector(ex["next_q2_all"], best2),
         r"Q_{tot}' &= w_1' \max Q_1' + w_2' \max Q_2' + b' = " + _num(ex["next_w1"]) + r" \cdot "
         + _par(ex["next_q1_max"]) + " + " + _num(ex["next_w2"]) + r" \cdot " + _par(ex["next_q2_max"]) + " + "
         + _par(ex["next_b"]) + " = " + _num(ex["next_q_tot"]),
@@ -195,10 +196,10 @@ def format_hand_example(ex: dict) -> str:
         + _par(ex["next_q_tot"]) + " = " + _num(ex["td_target"]),
         r"\delta &= y - Q_{tot} = " + _num(ex["td_target"]) + " - " + _par(ex["q_tot"]) + " = "
         + _num(ex["td_error"]) + r", \qquad \mathcal{L} = \delta^2 = " + _num(ex["loss"]),
-        r"\frac{\partial \mathcal{L}}{\partial Q_{tot}} &= -2\delta = " + _num(ex["dloss_dq_tot"])
-        + r", \qquad \frac{\partial \mathcal{L}}{\partial Q_1} = -2\delta\, w_1 = " + _num(ex["dloss_dq1"])
-        + r", \qquad \frac{\partial \mathcal{L}}{\partial Q_2} = -2\delta\, w_2 = " + _num(ex["dloss_dq2"]),
-        r"\frac{\partial \mathcal{L}}{\partial (w_1, w_2, b)} &= -2\delta\, (Q_1, Q_2, 1) = ("
+        r"\partial \mathcal{L} / \partial Q_{tot} &= -2\delta = " + _num(ex["dloss_dq_tot"]),
+        r"\partial \mathcal{L} / \partial (Q_1, Q_2) &= -2\delta\, (w_1, w_2) = (" + _num(ex["dloss_dq1"]) + ", "
+        + _num(ex["dloss_dq2"]) + r") \quad \text{(credit to each agent)}",
+        r"\partial \mathcal{L} / \partial (w_1, w_2, b) &= -2\delta\, (Q_1, Q_2, 1) = ("
         + ", ".join(_num(ex[k]) for k in ("dloss_dw1", "dloss_dw2", "dloss_db")) + ")",
         r"(w_1, w_2, b) &\leftarrow (w_1, w_2, b) - \eta \nabla \mathcal{L} = ("
         + ", ".join(_num(ex[k]) for k in ("new_w1", "new_w2", "new_b")) + ")",
@@ -212,8 +213,8 @@ def format_real_example(r: dict, action_names: list[str]) -> str:
     """The real-network example as a chain of formulas (Markdown + LaTeX)."""
     a1, a2 = r["actions"]
     lines = [
-        r"Q_1(\tau_1, \cdot) &= " + _vector(r["q1_all"], a1) + r",\qquad Q_2(\tau_2, \cdot) = "
-        + _vector(r["q2_all"], a2) + r"\quad \text{(taken action in bold)}",
+        r"Q_1(\tau_1, \cdot) &= " + _vector(r["q1_all"], a1) + r"\quad \text{(taken action in bold)}",
+        r"Q_2(\tau_2, \cdot) &= " + _vector(r["q2_all"], a2),
         r"Q_{tot}(\boldsymbol{\tau}, \mathbf{a}, s) &= g\big(" + _num(r["chosen_q"][0], 3) + ",\\ "
         + _num(r["chosen_q"][1], 3) + r";\ s\big) = " + _num(r["q_tot"]),
         r"Q^{-}_{tot}(\boldsymbol{\tau}', \hat{\mathbf{a}}', s') &= g^{-}\big(" + _num(r["next_max_q"][0], 3) + ",\\ "
